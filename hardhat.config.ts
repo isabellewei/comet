@@ -55,6 +55,7 @@ const {
   BASESCAN_KEY,
   LINEASCAN_KEY,
   OPTIMISMSCAN_KEY,
+  SCROLLSCAN_KEY,
   INFURA_KEY,
   QUICKNODE_KEY,
   MNEMONIC = 'myth like bonus scare over problem client lizard pioneer submit female collect',
@@ -86,7 +87,8 @@ export function requireEnv(varName, msg?: string): string {
   'POLYGONSCAN_KEY',
   'ARBISCAN_KEY',
   'LINEASCAN_KEY',
-  'OPTIMISMSCAN_KEY'
+  'OPTIMISMSCAN_KEY',
+  'SCROLLSCAN_KEY'
 ].map((v) => requireEnv(v));
 
 // Networks
@@ -259,7 +261,7 @@ const config: HardhatUserConfig = {
       // Scroll Testnet
       'scroll-goerli': ETHERSCAN_KEY,
       // Scroll
-      'scroll': ETHERSCAN_KEY,
+      'scroll': SCROLLSCAN_KEY,
     },
     customChains: [
       {
