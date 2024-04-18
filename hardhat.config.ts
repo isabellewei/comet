@@ -20,6 +20,8 @@ import './tasks/scenario/task.ts';
 import relationConfigMap from './deployments/relations';
 import goerliRelationConfigMap from './deployments/goerli/usdc/relations';
 import goerliWethRelationConfigMap from './deployments/goerli/weth/relations';
+import sepoliaUsdcRelationConfigMap from './deployments/sepolia/usdc/relations';
+import sepoliaWethRelationConfigMap from './deployments/sepolia/weth/relations';
 import mumbaiRelationConfigMap from './deployments/mumbai/usdc/relations';
 import mainnetRelationConfigMap from './deployments/mainnet/usdc/relations';
 import mainnetWethRelationConfigMap from './deployments/mainnet/weth/relations';
@@ -30,11 +32,13 @@ import arbitrumBridgedUsdcGoerliRelationConfigMap from './deployments/arbitrum-g
 import arbitrumGoerliNativeUsdcRelationConfigMap from './deployments/arbitrum-goerli/usdc/relations';
 import baseUsdbcRelationConfigMap from './deployments/base/usdbc/relations';
 import baseWethRelationConfigMap from './deployments/base/weth/relations';
+import baseUsdcRelationConfigMap from './deployments/base/usdc/relations';
 import baseGoerliRelationConfigMap from './deployments/base-goerli/usdc/relations';
 import baseGoerliWethRelationConfigMap from './deployments/base-goerli/weth/relations';
 import lineaGoerliRelationConfigMap from './deployments/linea-goerli/usdc/relations';
+import optimismRelationConfigMap from './deployments/optimism/usdc/relations';
 import scrollGoerliRelationConfigMap from './deployments/scroll-goerli/usdc/relations';
-
+import scrollRelationConfigMap from './deployments/scroll/usdc/relations';
 
 task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   for (const account of await hre.ethers.getSigners()) console.log(account.address);
@@ -50,6 +54,7 @@ const {
   ARBISCAN_KEY,
   BASESCAN_KEY,
   LINEASCAN_KEY,
+  OPTIMISMSCAN_KEY,
   INFURA_KEY,
   QUICKNODE_KEY,
   MNEMONIC = 'myth like bonus scare over problem client lizard pioneer submit female collect',
@@ -78,10 +83,11 @@ export function requireEnv(varName, msg?: string): string {
   'ETHERSCAN_KEY',
   // 'SNOWTRACE_KEY',
   'INFURA_KEY',
-  // 'POLYGONSCAN_KEY',
-  // 'ARBISCAN_KEY',
-  // 'LINEASCAN_KEY'
-].map(v => requireEnv(v));
+  'POLYGONSCAN_KEY',
+  'ARBISCAN_KEY',
+  'LINEASCAN_KEY',
+  'OPTIMISMSCAN_KEY'
+].map((v) => requireEnv(v));
 
 // Networks
 interface NetworkConfig {
@@ -97,10 +103,16 @@ const networkConfigs: NetworkConfig[] = [
   { network: 'ropsten', chainId: 3 },
   { network: 'rinkeby', chainId: 4 },
   { network: 'goerli', chainId: 5 },
+  { network: 'sepolia', chainId: 11155111 },
   {
     network: 'polygon',
     chainId: 137,
     url: `https://polygon-mainnet.infura.io/v3/${INFURA_KEY}`,
+  },
+  {
+    network: 'optimism',
+    chainId: 10,
+    url: `https://optimism-mainnet.infura.io/v3/${INFURA_KEY}`,
   },
   {
     network: 'base',
@@ -146,6 +158,11 @@ const networkConfigs: NetworkConfig[] = [
     network: 'scroll-goerli',
     chainId: 534353,
     url: 'https://alpha-rpc.scroll.io/l2',
+  },
+  {
+    network: 'scroll',
+    chainId: 534352,
+    url: 'https://rpc.scroll.io',
   }
 ];
 
@@ -220,6 +237,7 @@ const config: HardhatUserConfig = {
       ropsten: ETHERSCAN_KEY,
       rinkeby: ETHERSCAN_KEY,
       goerli: ETHERSCAN_KEY,
+      sepolia: ETHERSCAN_KEY,
       // Avalanche
       avalanche: SNOWTRACE_KEY,
       avalancheFujiTestnet: SNOWTRACE_KEY,
@@ -236,8 +254,12 @@ const config: HardhatUserConfig = {
       'base-goerli': BASESCAN_KEY,
       // Linea
       'linea-goerli': LINEASCAN_KEY,
+      optimism: OPTIMISMSCAN_KEY,
+      optimisticEthereum: OPTIMISMSCAN_KEY,
+      // Scroll Testnet
+      'scroll-goerli': ETHERSCAN_KEY,
       // Scroll
-      'scroll-goerli': ETHERSCAN_KEY
+      'scroll': ETHERSCAN_KEY,
     },
     customChains: [
       {
@@ -291,6 +313,14 @@ const config: HardhatUserConfig = {
           apiURL: 'https://alpha-blockscout.scroll.io/api',
           browserURL: 'https://alpha-blockscout.scroll.io/'
         }
+      },
+      {
+        network: 'scroll',
+        chainId: 534352,
+        urls: {
+          apiURL: 'https://api.scrollscan.com/api',
+          browserURL: 'https://scrollscan.com/'
+        }
       }
     ]
   },
@@ -306,6 +336,10 @@ const config: HardhatUserConfig = {
       goerli: {
         usdc: goerliRelationConfigMap,
         weth: goerliWethRelationConfigMap
+      },
+      sepolia: {
+        usdc: sepoliaUsdcRelationConfigMap,
+        weth: sepoliaWethRelationConfigMap
       },
       mumbai: {
         usdc: mumbaiRelationConfigMap
@@ -327,7 +361,8 @@ const config: HardhatUserConfig = {
       },
       'base': {
         usdbc: baseUsdbcRelationConfigMap,
-        weth: baseWethRelationConfigMap
+        weth: baseWethRelationConfigMap,
+        usdc: baseUsdcRelationConfigMap
       },
       'base-goerli': {
         usdc: baseGoerliRelationConfigMap,
@@ -336,8 +371,14 @@ const config: HardhatUserConfig = {
       'linea-goerli': {
         usdc: lineaGoerliRelationConfigMap
       },
+      optimism: {
+        usdc: optimismRelationConfigMap
+      },
       'scroll-goerli': {
         usdc: scrollGoerliRelationConfigMap
+      },
+      'scroll': {
+        usdc: scrollRelationConfigMap
       }
     },
   },
@@ -374,6 +415,16 @@ const config: HardhatUserConfig = {
         name: 'goerli-weth',
         network: 'goerli',
         deployment: 'weth',
+      },
+      {
+        name: 'sepolia-usdc',
+        network: 'sepolia',
+        deployment: 'usdc'
+      },
+      {
+        name: 'sepolia-weth',
+        network: 'sepolia',
+        deployment: 'weth'
       },
       {
         name: 'mumbai',
@@ -424,6 +475,12 @@ const config: HardhatUserConfig = {
         auxiliaryBase: 'mainnet'
       },
       {
+        name: 'base-usdc',
+        network: 'base',
+        deployment: 'usdc',
+        auxiliaryBase: 'mainnet'
+      },
+      {
         name: 'base-goerli',
         network: 'base-goerli',
         deployment: 'usdc',
@@ -442,10 +499,22 @@ const config: HardhatUserConfig = {
         auxiliaryBase: 'goerli'
       },
       {
+        name: 'optimism-usdc',
+        network: 'optimism',
+        deployment: 'usdc',
+        auxiliaryBase: 'mainnet'
+      },
+      {
         name: 'scroll-goerli',
         network: 'scroll-goerli',
         deployment: 'usdc',
         auxiliaryBase: 'goerli'
+      },
+      {
+        name: 'scroll-usdc',
+        network: 'scroll',
+        deployment: 'usdc',
+        auxiliaryBase: 'mainnet'
       }
     ],
   },
